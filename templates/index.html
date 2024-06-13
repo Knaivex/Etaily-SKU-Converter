@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKU Converter</title>
+<script>
+function limitTextarea() {
+    var textarea = document.getElementById("sku_list");
+    var lines = textarea.value.split("\n").length;
+    if (lines > 3000) {
+        alert("You can only input up to 3000 SKUs.");
+        textarea.value = textarea.value.split("\n").slice(0, 3000).join("\n");
+    }
+}
+
+function copyResult() {
+    var resultTextarea = document.getElementById("result");
+    resultTextarea.select();
+    document.execCommand("copy");
+    alert("Result copied to clipboard!");
+}
+
+function clearResultTextarea() {
+    document.getElementById("result").value = "";
+}
+</script>
+</head>
+<body>
+
+<h1>SKU Converter</h1>
+
+<form method="post">
+    <textarea id="sku_list" name="sku_list" rows="10" cols="50" placeholder="Enter SKU codes, one per line" oninput="limitTextarea()"></textarea><br>
+    <input type="radio" name="conversion_type" value="name" checked> Name
+    <input type="radio" name="conversion_type" value="id"> ID<br>
+    <input type="submit" value="Convert">
+    <button type="button" onclick="clearTextarea()">Delete</button>
+</form>
+
+<br>
+
+<textarea id="result" name="result" rows="10" cols="50" placeholder="Result will appear here" readonly>{{ result }}</textarea>
+<button onclick="copyResult()">Copy Result</button>
+<button type="button" onclick="clearResultTextarea()">Delete</button>
+
+</body>
+</html>
