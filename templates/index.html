@@ -35,14 +35,43 @@
         resize: vertical;
     }
 
-    button {
+    button, input[type="submit"] {
         display: block;
         margin-top: 10px;
         padding: 10px 20px;
         font-size: 16px;
         cursor: pointer;
         width: 100%;
+        border: none;
+        border-radius: 25px;
+        background-color: #007BFF;
+        color: white;
     }
+
+    button:disabled, input[type="submit"]:disabled {
+        background-color: #ccc;
+    }
+
+    button:focus, input[type="submit"]:focus {
+        outline: none;
+    }
+
+    .button-special {
+        background-color: #e9e9e9;
+        color: #007BFF;
+        border: none;
+        border-radius: 25px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .button-special:focus {
+        outline: none;
+    }
+
 </style>
 <script>
 function limitTextarea() {
