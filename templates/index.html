@@ -43,7 +43,7 @@
         cursor: pointer;
         width: 100%;
         border: none;
-        border-radius: 25px;
+        border-radius: 4px;
         background-color: #007BFF;
         color: white;
     }
@@ -60,7 +60,7 @@
         background-color: #e9e9e9;
         color: #007BFF;
         border: none;
-        border-radius: 25px;
+        border-radius: 4px;
         padding: 10px 20px;
         font-size: 16px;
         cursor: pointer;
@@ -71,15 +71,14 @@
     .button-special:focus {
         outline: none;
     }
-
 </style>
 <script>
 function limitTextarea() {
     var textarea = document.getElementById("sku_list");
     var lines = textarea.value.split("\n").length;
-    if (lines > 3000) {
-        alert("You can only input up to 3000 SKUs.");
-        textarea.value = textarea.value.split("\n").slice(0, 3000).join("\n");
+    if (lines > 10000) {
+        alert("You can only input up to 10000 SKUs.");
+        textarea.value = textarea.value.split("\n").slice(0, 10000).join("\n");
     }
 }
 
@@ -104,14 +103,16 @@ function clearResultTextarea() {
 
 function enableInput() {
     var marketplace = document.getElementById("marketplace").value;
+    var brand = document.getElementById("brand").value;
     var textarea = document.getElementById("sku_list");
-    textarea.disabled = marketplace === "";
+    textarea.disabled = marketplace === "" || brand === "";
 }
 
 function enableConvertButton() {
     var marketplace = document.getElementById("marketplace").value;
+    var brand = document.getElementById("brand").value;
     var convertButton = document.getElementById("convert_button");
-    convertButton.disabled = marketplace === "";
+    convertButton.disabled = marketplace === "" || brand === "";
 }
 </script>
 </head>
@@ -122,6 +123,12 @@ function enableConvertButton() {
 <div class="container">
     <div class="converter">
         <form method="post">
+            <select id="brand" name="brand" onchange="enableInput(); enableConvertButton()" style="width: 100%; margin-bottom: 10px;">
+                <option value="" selected disabled>Select a brand</option>
+                {% for brand in brands %}
+                <option value="{{ brand }}" {% if selected_brand == brand %}selected{% endif %}>{{ brand }}</option>
+                {% endfor %}
+            </select>
             <select id="marketplace" name="marketplace" onchange="enableInput(); enableConvertButton()" style="width: 100%; margin-bottom: 10px;">
                 <option value="" selected disabled>Select a marketplace</option>
                 <option value="shopee" {% if marketplace == 'shopee' %}selected{% endif %}>Shopee</option>
@@ -135,23 +142,24 @@ function enableConvertButton() {
             <input type="radio" name="conversion_type" value="sku_code" {% if conversion_type == 'sku_code' %}checked{% endif %}> SKU Code<br>
             <br>
             <input id="convert_button" type="submit" value="Convert" style="width: 100%;" disabled>
-            <button type="button" onclick="clearResultTextarea()" style="width: 100%;">Clear Results</button>
+            <button type="button" onclick="clearResultTextarea()" class="button-special">Clear Results</button>
         </form>
     </div>
 
     <div class="result">
         <textarea id="result" name="result" rows="20" placeholder="Conversion result will appear here" readonly>{{ result }}</textarea>
-        <button onclick="copyResult()" style="width: 100%;">Copy Result</button>
+        <button onclick="copyResult()">Copy Result</button>
         <br><br>
         <textarea id="comma_result" name="comma_result" rows="20" placeholder="Comma-separated result will appear here" readonly>{{ comma_result }}</textarea>
-        <button onclick="copyCommaResult()" style="width: 100%;">Copy Comma Result</button>
+        <button onclick="copyCommaResult()">Copy Comma Result</button>
     </div>
 </div>
 
 <script>
-// Additional script to enable input and convert button initially if marketplace is pre-selected
-enableInput();
-enableConvertButton();
+document.addEventListener("DOMContentLoaded", function() {
+    enableInput();
+    enableConvertButton();
+});
 </script>
 
 </body>

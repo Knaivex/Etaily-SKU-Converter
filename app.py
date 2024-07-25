@@ -12,17 +12,14 @@ sku_to_shop_sku = {}
 name_to_sku = {}
 id_to_sku = {}
 shop_sku_to_sku = {}
+brands = []
 
 try:
-    masterfile = pd.read_csv('masterfile.csv', encoding='utf-8')
+    masterfile = pd.read_csv('masterfile.csv', encoding='ISO-8859-1')  # Change encoding here
     print(masterfile.head())  # Print the first few rows of the CSV for debugging
 
-    # Convert all values to strings and handle NaNs
-    masterfile['product_name'] = masterfile['product_name'].astype(str).fillna('Unknown SKU')
-    masterfile['product_id_shopee'] = masterfile['product_id_shopee'].astype(str).fillna('Unknown SKU')
-    masterfile['product_id_lazada'] = masterfile['product_id_lazada'].astype(str).fillna('Unknown SKU')
-    masterfile['product_id_tiktok'] = masterfile['product_id_tiktok'].astype(str).fillna('Unknown SKU')
-    masterfile['shop_sku'] = masterfile['shop_sku'].astype(str).fillna('Unknown SKU')
+    # Replace NaN values with 'No data' and convert all columns to strings
+    masterfile = masterfile.fillna('No data').astype(str)
 
     sku_to_name = pd.Series(masterfile.product_name.values, index=masterfile.sku_code).to_dict()
     sku_to_id_shopee = pd.Series(masterfile.product_id_shopee.values, index=masterfile.sku_code).to_dict()
@@ -36,6 +33,9 @@ try:
                  **pd.Series(masterfile.sku_code.values, index=masterfile.product_id_tiktok).to_dict()}
     shop_sku_to_sku = pd.Series(masterfile.sku_code.values, index=masterfile.shop_sku).to_dict()
 
+    # Extract unique brands from Column A
+    brands = masterfile['brand'].unique().tolist()
+    
     print(sku_to_name)  # Print the dictionary for debugging
     print(name_to_sku)  # Print the reverse dictionary for debugging
 except pd.errors.ParserError as e:
@@ -49,7 +49,8 @@ except Exception as e:
 def index():
     sku_list = ""
     conversion_type = "name"
-    marketplace = "shopee"
+    marketplace = "Select a market place"
+    selected_brand = ""
     result = ""
     comma_result = ""
 
@@ -57,8 +58,23 @@ def index():
         sku_list = request.form.get('sku_list', '').strip()
         conversion_type = request.form.get('conversion_type', 'name')
         marketplace = request.form.get('marketplace', 'shopee')
-        
-        if sku_list:
+        selected_brand = request.form.get('brand', '')
+
+        if sku_list and selected_brand:
+            # Filter SKUs based on selected brand
+            filtered_masterfile = masterfile[masterfile['brand'] == selected_brand]
+            sku_to_name_filtered = pd.Series(filtered_masterfile.product_name.values, index=filtered_masterfile.sku_code).to_dict()
+            sku_to_id_shopee_filtered = pd.Series(filtered_masterfile.product_id_shopee.values, index=filtered_masterfile.sku_code).to_dict()
+            sku_to_id_lazada_filtered = pd.Series(filtered_masterfile.product_id_lazada.values, index=filtered_masterfile.sku_code).to_dict()
+            sku_to_id_tiktok_filtered = pd.Series(filtered_masterfile.product_id_tiktok.values, index=filtered_masterfile.sku_code).to_dict()
+            sku_to_shop_sku_filtered = pd.Series(filtered_masterfile.shop_sku.values, index=filtered_masterfile.sku_code).to_dict()
+
+            name_to_sku_filtered = pd.Series(filtered_masterfile.sku_code.values, index=filtered_masterfile.product_name).to_dict()
+            id_to_sku_filtered = {**pd.Series(filtered_masterfile.sku_code.values, index=filtered_masterfile.product_id_shopee).to_dict(),
+                                 **pd.Series(filtered_masterfile.sku_code.values, index=filtered_masterfile.product_id_lazada).to_dict(),
+                                 **pd.Series(filtered_masterfile.sku_code.values, index=filtered_masterfile.product_id_tiktok).to_dict()}
+            shop_sku_to_sku_filtered = pd.Series(filtered_masterfile.sku_code.values, index=filtered_masterfile.shop_sku).to_dict()
+
             # Normalize line endings to '\n'
             sku_list = sku_list.replace('\r\n', '\n').replace('\r', '\n')
             sku_list_lines = sku_list.split('\n')
@@ -67,42 +83,45 @@ def index():
             for item in sku_list_lines:
                 item = item.strip()
                 if item:
-                    if item in sku_to_name:
+                    if item in sku_to_name_filtered:
                         sku_code = item
-                    elif item in name_to_sku:
-                        sku_code = name_to_sku[item]
-                    elif item in id_to_sku:
-                        sku_code = id_to_sku[item]
-                    elif item in shop_sku_to_sku:
-                        sku_code = shop_sku_to_sku[item]
+                    elif item in name_to_sku_filtered:
+                        sku_code = name_to_sku_filtered[item]
+                    elif item in id_to_sku_filtered:
+                        sku_code = id_to_sku_filtered[item]
+                    elif item in shop_sku_to_sku_filtered:
+                        sku_code = shop_sku_to_sku_filtered[item]
                     else:
                         sku_code = None
                     
                     if sku_code:
                         if conversion_type == 'name':
-                            result.append(sku_to_name.get(sku_code, 'Unknown SKU'))
+                            result.append(sku_to_name_filtered.get(sku_code, 'No data'))
                         elif conversion_type == 'id':
                             if marketplace == 'shopee':
-                                result.append(sku_to_id_shopee.get(sku_code, 'Unknown SKU'))
+                                id_value = sku_to_id_shopee_filtered.get(sku_code, 'No data')
+                                result.append(str(int(float(id_value))) if id_value != 'No data' else 'No data')
                             elif marketplace == 'lazada':
-                                result.append(sku_to_id_lazada.get(sku_code, 'Unknown SKU'))
+                                id_value = sku_to_id_lazada_filtered.get(sku_code, 'No data')
+                                result.append(str(int(float(id_value))) if id_value != 'No data' else 'No data')
                             elif marketplace == 'tiktok':
-                                result.append(sku_to_id_tiktok.get(sku_code, 'Unknown SKU'))
+                                id_value = sku_to_id_tiktok_filtered.get(sku_code, 'No data')
+                                result.append(str(int(float(id_value))) if id_value != 'No data' else 'No data')
                         elif conversion_type == 'shop_sku':
-                            result.append(sku_to_shop_sku.get(sku_code, 'Unknown SKU'))
+                            result.append(sku_to_shop_sku_filtered.get(sku_code, 'No data'))
                         elif conversion_type == 'sku_code':
                             result.append(sku_code)
                         else:
                             result.append('Invalid conversion type. Use "name", "id", "shop_sku", or "sku_code".')
                     else:
-                        result.append('Unknown SKU')
+                        result.append('No data')
 
             # Join the result using new lines
             result = "\n".join(result)
             # Convert result to comma-separated format
             comma_result = ", ".join(result.splitlines())
 
-    return render_template('index.html', sku_list=sku_list, conversion_type=conversion_type, marketplace=marketplace, result=result, comma_result=comma_result)
+    return render_template('index.html', sku_list=sku_list, conversion_type=conversion_type, marketplace=marketplace, selected_brand=selected_brand, result=result, comma_result=comma_result, brands=brands)
 
 if __name__ == '__main__':
     app.run(debug=True)
