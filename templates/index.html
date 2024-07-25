@@ -3,11 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SKU Converter</title>
+<title>Etaily SKU Converter</title>
 <style>
     body {
         font-family: Arial, sans-serif;
         margin: 20px;
+        background-color: #0e1f39; /* Dark background color */
+    }
+
+
+
+    .logo {
+        width: 150px; /* Adjust logo size as needed */
+    }
+
+    h1 {
+        text-align: center;
+        color: white; /* Header text color */
+        font-size: 4em; /* Font size 4x larger */
     }
 
     .container {
@@ -44,8 +57,8 @@
         width: 100%;
         border: none;
         border-radius: 4px;
-        background-color: #007BFF;
-        color: white;
+        background-color: #6c757d; /* Gray button color */
+        color: white; /* Button text color */
     }
 
     button:disabled, input[type="submit"]:disabled {
@@ -70,6 +83,15 @@
 
     .button-special:focus {
         outline: none;
+    }
+
+    label {
+        color: white; /* Color for radio button labels */
+        margin-bottom: 5px; /* Space between radio buttons */
+    }
+
+    input[type="radio"] {
+        margin-right: 10px; /* Space between radio button and label text */
     }
 </style>
 <script>
@@ -118,7 +140,9 @@ function enableConvertButton() {
 </head>
 <body>
 
-<h1 style="text-align: center;">SKU Converter</h1>
+<div class="header">
+    <h1>SKU Converter</h1>
+</div>
 
 <div class="container">
     <div class="converter">
@@ -136,10 +160,10 @@ function enableConvertButton() {
                 <option value="tiktok" {% if marketplace == 'tiktok' %}selected{% endif %}>TikTok</option>
             </select>
             <textarea id="sku_list" name="sku_list" rows="10" placeholder="Enter SKU codes, names, or shop SKUs, one per line" oninput="limitTextarea()" disabled>{{ sku_list }}</textarea><br>
-            <input type="radio" name="conversion_type" value="name" {% if conversion_type == 'name' %}checked{% endif %}> Name
-            <input type="radio" name="conversion_type" value="id" {% if conversion_type == 'id' %}checked{% endif %}> ID
-            <input type="radio" name="conversion_type" value="shop_sku" {% if conversion_type == 'shop_sku' %}checked{% endif %}> Shop SKU
-            <input type="radio" name="conversion_type" value="sku_code" {% if conversion_type == 'sku_code' %}checked{% endif %}> SKU Code<br>
+            <label><input type="radio" name="conversion_type" value="name" {% if conversion_type == 'name' %}checked{% endif %}> Name</label>
+            <label><input type="radio" name="conversion_type" value="id" {% if conversion_type == 'id' %}checked{% endif %}> ID</label>
+            <label><input type="radio" name="conversion_type" value="shop_sku" {% if conversion_type == 'shop_sku' %}checked{% endif %}> Shop SKU</label>
+            <label><input type="radio" name="conversion_type" value="sku_code" {% if conversion_type == 'sku_code' %}checked{% endif %}> SKU Code</label>
             <br>
             <input id="convert_button" type="submit" value="Convert" style="width: 100%;" disabled>
             <button type="button" onclick="clearResultTextarea()" class="button-special">Clear Results</button>
